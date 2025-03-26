@@ -1,6 +1,6 @@
 <p align="center">
   <picture>
-    <img src="https://ucarecdn.com/eac2c945-177d-4fc9-8bc1-fa2be48ad3a2/lotolab_golden.svg" height="100"/>
+    <img src="https://github.com/xtsai/.github/blob/main/assets/images/lotolab_golden.svg" height="100"/>
   </picture>
   <h4 align="center">
     The @xtsai/knorm Project create Base on Tsai framework.
