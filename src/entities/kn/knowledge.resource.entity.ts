@@ -52,7 +52,7 @@ export class KnResourceEntity extends CommonEntity {
   @Column({
     type: 'longtext',
     name: 'md_paths',
-    length: 256,
+    nullable: true,
     comment: 'md file path on server locale',
   })
   mdpaths: string;
