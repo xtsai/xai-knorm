@@ -1,7 +1,12 @@
 import { CommonEntity } from '@xtsai/core';
 import { KnBaseProcessEnum } from '../../enums';
-import { Column } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 
+@Entity({
+  name: 'ai_kn_resource',
+  synchronize: true,
+  comment: 'kn resources',
+})
 export class KnResourceEntity extends CommonEntity {
   @Column({
     type: 'varchar',
