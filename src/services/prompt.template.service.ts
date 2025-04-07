@@ -201,9 +201,11 @@ export class PromptTemplateService {
       .where('m.uuid IN (:...uuids)', { uuids: conditionIds })
       .orderBy('m.uuid', 'ASC')
       .getMany();
+
+    return allModelEntities;
   }
 
-  static convertPromtTemplateEntity2PetCache(){}
+  static convertPromtTemplateEntity2PetCache() {}
 
-  static convertPromptOptionEntity2OptionCache(){}
+  static convertPromptOptionEntity2OptionCache() {}
 }
