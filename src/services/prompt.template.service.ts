@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PromptTemplateEntity } from '../entities';
+import { PromptOptionEntity, PromptTemplateEntity } from '../entities';
 import {
   CreatePromptTemplateDto,
   QueryPromptTemplateDto,
@@ -13,10 +13,14 @@ import { UpdateSortnoModel, UpdateStatusModel } from '@xtsai/core';
 
 @Injectable()
 export class PromptTemplateService {
+  public readonly maxLimit: number = 1000;
   public readonly startUuid: number = 5000;
   constructor(
     @InjectRepository(PromptTemplateEntity)
     private readonly repository: Repository<PromptTemplateEntity>,
+
+    @InjectRepository(PromptOptionEntity)
+    private readonly moptRepository: Repository<PromptOptionEntity>,
   ) {}
 
   get petRepository(): Repository<PromptTemplateEntity> {
@@ -171,4 +175,35 @@ export class PromptTemplateService {
     if (!maxSortno) return 1;
     return +maxSortno + 1;
   }
+
+  async removeById(id: number): Promise<boolean> {
+    const { affected } = await this.repository
+      .createQueryBuilder()
+      .softDelete()
+      .where('id = :id', { id })
+      .execute();
+    return affected > 0;
+  }
+
+  async getAllPetCaches() {
+    const petEntities = await this.repository
+      .createQueryBuilder()
+      .orderBy('status', 'DESC')
+      .addOrderBy('id', 'ASC')
+      .offset(0)
+      .take(this.maxLimit)
+      .getMany();
+
+    const conditionIds = petEntities.map(({ id }) => id);
+
+    const allModelEntities: PromptOptionEntity[] = await this.moptRepository
+      .createQueryBuilder('m')
+      .where('m.uuid IN (:...uuids)', { uuids: conditionIds })
+      .orderBy('m.uuid', 'ASC')
+      .getMany();
+  }
+
+  static convertPromtTemplateEntity2PetCache(){}
+
+  static convertPromptOptionEntity2OptionCache(){}
 }

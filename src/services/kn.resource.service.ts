@@ -83,7 +83,6 @@ export class KnowledgeResourceService {
       filename,
       entryUrl,
       keywords,
-
       mdfile,
       crawler,
       remark,

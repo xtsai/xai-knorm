@@ -127,13 +127,13 @@ export type ModelOptionCacheType = {
   modelid: string;
   provider: string;
   model: string;
-  aiOptsJson?: Record<string, any>;
+  aiOpts?: Record<string, any>;
   isDefault: boolean;
   sortno: number;
   status: StatusEnum;
 };
 
-export class PromptEngineerTemplateCache {
+export class PETCache {
   uuid: number;
   title: string;
   group: string;
@@ -143,4 +143,5 @@ export class PromptEngineerTemplateCache {
   status: StatusEnum;
   presetMessagesJson?: XChatMessageType[];
   models: Array<ModelOptionCacheType>;
+  ready?: boolean;
 }

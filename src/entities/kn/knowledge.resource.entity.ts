@@ -19,6 +19,15 @@ export class KnResourceEntity extends CommonEntity {
 
   @Column({
     type: 'varchar',
+    name: 'docext',
+    length: 50,
+    default: '',
+    comment: 'file docext',
+  })
+  docext: string;
+
+  @Column({
+    type: 'varchar',
     name: 'entry_url',
     length: 256,
     comment: 'url',
