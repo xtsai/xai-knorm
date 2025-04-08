@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PromptOptionEntity, PromptTemplateEntity } from '../entities';
 import {
   CreatePromptTemplateDto,
+  ModelOptionCacheType,
+  PETCache,
   QueryPromptTemplateDto,
   UpdatePromptTemplate,
 } from '../models';
@@ -25,6 +27,10 @@ export class PromptTemplateService {
 
   get petRepository(): Repository<PromptTemplateEntity> {
     return this.repository;
+  }
+
+  getById(id: number) {
+    return this.repository.findOneBy({ id });
   }
 
   async pagination(queryDto: QueryPromptTemplateDto) {
@@ -202,10 +208,134 @@ export class PromptTemplateService {
       .orderBy('m.uuid', 'ASC')
       .getMany();
 
-    return allModelEntities;
+    const caches = petEntities.map((e) =>
+      PromptTemplateService.convertPromtTemplateEntity2PetCache(e),
+    );
+
+    const cacheMap = new Map<number, PETCache>(caches.map((c) => [c.uuid, c]));
+
+    for (let i = 0; i < allModelEntities.length; i++) {
+      const modelCache =
+        PromptTemplateService.convertPromptOptionEntity2OptionCache(
+          allModelEntities[i],
+        );
+
+      const uuid = modelCache.uuid;
+
+      const p = cacheMap.get(uuid);
+      if (p) {
+        if (!p.models) {
+          p.models.push(modelCache);
+        }
+
+        p.ready = p.status === StatusEnum.NORMAL && p.models.length > 0;
+
+        cacheMap.set(uuid, p);
+      }
+    }
+
+    const pets: PETCache[] = [];
+
+    cacheMap.forEach((v) => {
+      pets.push(v);
+    });
+
+    return pets;
   }
 
-  static convertPromtTemplateEntity2PetCache() {}
+  async buildOnePetcache(uuid: number): Promise<PETCache | never> {
+    const entity = await this.getById(uuid);
+    if (!entity) return;
 
-  static convertPromptOptionEntity2OptionCache() {}
+    const pet =
+      PromptTemplateService.convertPromtTemplateEntity2PetCache(entity);
+    const entities = await this.moptRepository
+      .createQueryBuilder()
+      .where({ uuid })
+      .orderBy('sortno', 'ASC')
+      .getMany();
+
+    const models = entities.map((m) =>
+      PromptTemplateService.convertPromptOptionEntity2OptionCache(m),
+    );
+    pet.models = models ?? [];
+    pet.ready = pet.models.length > 0 && entity.status === StatusEnum.NORMAL;
+
+    return pet;
+  }
+
+  static convertPromtTemplateEntity2PetCache(entity: PromptTemplateEntity) {
+    const {
+      id,
+      title,
+      group,
+      petype,
+      kno,
+      systemMessage,
+      presetMessages,
+      status,
+    } = entity;
+
+    let presetMessagesJson;
+    if (presetMessages?.length) {
+      try {
+        presetMessagesJson = JSON.parse(presetMessages);
+      } catch (_) {
+        // skip illegal
+      }
+    }
+
+    const pet: PETCache = {
+      uuid: id,
+      title,
+      group,
+      petype,
+      kno,
+      systemMessage,
+      status,
+      presetMessagesJson: presetMessagesJson,
+      models: [],
+      ready: false,
+    };
+
+    return pet;
+  }
+
+  static convertPromptOptionEntity2OptionCache(
+    entity: PromptOptionEntity,
+  ): ModelOptionCacheType {
+    const {
+      id,
+      uuid,
+      name,
+      modelid,
+      model,
+      provider,
+      isDefault,
+      aiopts,
+      sortno,
+      status,
+    } = entity;
+
+    let aioptJson;
+    try {
+      aioptJson = JSON.parse(aiopts);
+    } catch (_) {
+      // skip null
+    }
+    const cache: ModelOptionCacheType = {
+      id,
+      uuid,
+      name,
+      model,
+      modelid,
+      provider,
+      isDefault,
+      sortno,
+      status,
+      aiOpts: aioptJson,
+    };
+
+    return cache;
+  }
 }
