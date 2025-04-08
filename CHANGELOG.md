@@ -1,5 +1,11 @@
 # @xtsai/knorm
 
+## 0.0.4
+
+### Patch Changes
+
+- Feat: add cache prompt
+
 ## 0.0.3
 
 ### Patch Changes
